@@ -7,7 +7,6 @@ import {switchMap, distinctUntilChanged} from 'rxjs/operators';
 
 import {FAVORITES_CATEGORY} from '@constants/categories';
 import {MM_TABLES} from '@constants/database';
-import CategoryChannelModel from '@typings/database/models/servers/category_channel';
 import {makeCategoryChannelId} from '@utils/categories';
 
 import {observeChannelsByLastPostAt} from './channel';

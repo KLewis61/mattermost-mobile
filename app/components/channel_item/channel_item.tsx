@@ -131,7 +131,7 @@ const ChannelListItem = ({
     const styles = getStyleSheet(theme);
 
     // Make it brighter if it's not muted, and highlighted or has unreads
-    const isBright = myChannel.isUnread || myChannel.mentionsCount > 0;
+    const isBolded = myChannel.isUnread || myChannel.mentionsCount > 0;
 
     const height = useMemo(() => {
         let h = 40;
@@ -152,7 +152,7 @@ const ChannelListItem = ({
         isBolded && styles.highlight,
         isActive && isTablet && !isInfo ? styles.textActive : null,
         isInfo ? styles.textInfo : null,
-    ], [isBright, styles, settings.notifyProps.mark_unread, isActive, isInfo]);
+    ], [isBolded, styles, settings.notifyProps.mark_unread, isActive, isInfo]);
 
     const containerStyle = useMemo(() => [
         styles.container,

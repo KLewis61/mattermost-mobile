@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {SectionList, SectionListData, SectionListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
 
@@ -87,7 +87,6 @@ const Categories = ({
     const serverUrl = useServerUrl();
     const isTablet = useIsTablet();
     const switchingTeam = useTeamSwitch();
-    const teamId = categories[0]?.teamId;
     const [initiaLoad, setInitialLoad] = useState(true);
 
     const onChannelSwitch = useCallback(async (channelId: string) => {
