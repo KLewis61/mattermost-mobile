@@ -18,6 +18,10 @@ class EphemeralStore {
     // and make sure we only handle one.
     private addingTeam = new Set<string>();
     private joiningChannels = new Set<string>();
+    private leavingChannels = new Set<string>();
+    private archivingChannels = new Set<string>();
+    private convertingChannels = new Set<string>();
+    private lastViewedThreadId = '';
 
     addNavigationComponentId = (componentId: string) => {
         this.addToNavigationComponentIdStack(componentId);
@@ -33,7 +37,7 @@ class EphemeralStore {
     addToNavigationComponentIdStack = (componentId: string) => {
         const index = this.navigationComponentIdStack.indexOf(componentId);
         if (index >= 0) {
-            this.navigationComponentIdStack = this.navigationComponentIdStack.slice(index, 1);
+            this.navigationComponentIdStack.splice(index, 1);
         }
 
         this.navigationComponentIdStack.unshift(componentId);
@@ -55,6 +59,8 @@ class EphemeralStore {
 
     getAllNavigationComponents = () => this.allNavigationComponentIds;
 
+    getAllNavigationModals = () => this.navigationModalStack;
+
     getNavigationTopComponentId = () => {
         return this.navigationComponentIdStack[0];
     };
@@ -71,7 +77,15 @@ class EphemeralStore {
 
     hasModalsOpened = () => this.navigationModalStack.length > 0;
 
+    private removeNavigationComponent = (componentId: string) => {
+        const index = this.allNavigationComponentIds.indexOf(componentId);
+        if (index >= 0) {
+            this.allNavigationComponentIds.splice(index, 1);
+        }
+    };
+
     removeNavigationComponentId = (componentId: string) => {
+        this.removeNavigationComponent(componentId);
         const index = this.navigationComponentIdStack.indexOf(componentId);
         if (index >= 0) {
             this.navigationComponentIdStack.splice(index, 1);
@@ -79,6 +93,7 @@ class EphemeralStore {
     };
 
     removeNavigationModal = (componentId: string) => {
+        this.removeNavigationComponentId(componentId);
         const index = this.navigationModalStack.indexOf(componentId);
 
         if (index >= 0) {
@@ -124,6 +139,45 @@ class EphemeralStore {
         }
     };
 
+    // Ephemeral control when (un)archiving a channel locally
+    addArchivingChannel = (channelId: string) => {
+        this.archivingChannels.add(channelId);
+    };
+
+    isArchivingChannel = (channelId: string) => {
+        return this.archivingChannels.has(channelId);
+    };
+
+    removeArchivingChannel = (channelId: string) => {
+        this.archivingChannels.delete(channelId);
+    };
+
+    // Ephemeral control when converting a channel to private locally
+    addConvertingChannel = (channelId: string) => {
+        this.convertingChannels.add(channelId);
+    };
+
+    isConvertingChannel = (channelId: string) => {
+        return this.convertingChannels.has(channelId);
+    };
+
+    removeConvertingChannel = (channelId: string) => {
+        this.convertingChannels.delete(channelId);
+    };
+
+    // Ephemeral control when leaving a channel locally
+    addLeavingChannel = (channelId: string) => {
+        this.leavingChannels.add(channelId);
+    };
+
+    isLeavingChannel = (channelId: string) => {
+        return this.leavingChannels.has(channelId);
+    };
+
+    removeLeavingChannel = (channelId: string) => {
+        this.leavingChannels.delete(channelId);
+    };
+
     // Ephemeral control when joining a channel locally
     addJoiningChannel = (channelId: string) => {
         this.joiningChannels.add(channelId);
@@ -133,10 +187,11 @@ class EphemeralStore {
         return this.joiningChannels.has(channelId);
     };
 
-    removeJoiningChanel = (channelId: string) => {
+    removeJoiningChannel = (channelId: string) => {
         this.joiningChannels.delete(channelId);
     };
 
+    // Ephemeral control when adding a team locally
     startAddingToTeam = (teamId: string) => {
         this.addingTeam.add(teamId);
     };
@@ -149,12 +204,22 @@ class EphemeralStore {
         return this.addingTeam.has(teamId);
     };
 
+    // Ephemeral for push proxy state
     setPushProxyVerificationState = (serverUrl: string, state: string) => {
         this.pushProxyVerification[serverUrl] = state;
     };
 
     getPushProxyVerificationState = (serverUrl: string) => {
         return this.pushProxyVerification[serverUrl];
+    };
+
+    // Ephemeral for the last viewed thread
+    getLastViewedThreadId = () => {
+        return this.lastViewedThreadId;
+    };
+
+    setLastViewedThreadId = (id: string) => {
+        this.lastViewedThreadId = id;
     };
 }
 

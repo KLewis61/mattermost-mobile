@@ -185,7 +185,7 @@ const FilteredList = ({
             return (
                 <Loading
                     containerStyle={style.noResultContainer}
-                    style={style.loading}
+                    size='large'
                     color={theme.buttonBg}
                 />
             );
@@ -275,7 +275,7 @@ const FilteredList = ({
     });
 
     useEffect(() => {
-        bounce.current = debounce(search, 250);
+        bounce.current = debounce(search, 500);
         bounce.current();
         return () => {
             if (bounce.current) {

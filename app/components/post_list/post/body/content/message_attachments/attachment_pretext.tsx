@@ -11,6 +11,8 @@ import type {MarkdownBlockStyles, MarkdownTextStyles} from '@typings/global/mark
 type Props = {
     baseTextStyle: StyleProp<TextStyle>;
     blockStyles?: MarkdownBlockStyles;
+    channelId: string;
+    location: string;
     metadata?: PostMetadata;
     textStyles?: MarkdownTextStyles;
     theme: Theme;
@@ -39,11 +41,13 @@ export default function AttachmentPreText(props: Props) {
     return (
         <View style={style.container}>
             <Markdown
-                baseTextStyle={baseTextStyle as never}
+                baseTextStyle={baseTextStyle}
+                channelId={props.channelId}
                 textStyles={textStyles}
                 blockStyles={blockStyles}
                 disableGallery={true}
                 imagesMetadata={metadata?.images}
+                location={props.location}
                 theme={props.theme}
                 value={value}
             />

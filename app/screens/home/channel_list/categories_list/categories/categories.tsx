@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {SectionList, SectionListData, SectionListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
 
@@ -50,11 +50,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         flex: 1,
     },
-    loading: {
-        justifyContent: 'center',
-        height: 32,
-        width: 32,
-    },
 });
 
 const unreadsSectionKey = 'UNREADS';
@@ -92,6 +87,8 @@ const Categories = ({
     const serverUrl = useServerUrl();
     const isTablet = useIsTablet();
     const switchingTeam = useTeamSwitch();
+    const teamId = categories[0]?.teamId;
+    const [initiaLoad, setInitialLoad] = useState(true);
 
     const onChannelSwitch = useCallback(async (channelId: string) => {
         switchToChannelById(serverUrl, channelId);
@@ -215,6 +212,14 @@ const Categories = ({
         );
     }, [onChannelSwitch]);
 
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setInitialLoad(false);
+        }, 0);
+
+        return () => clearTimeout(t);
+    }, []);
+
     if (!categories.length) {
         return <LoadCategoriesError/>;
     }
@@ -235,9 +240,12 @@ const Categories = ({
                     removeClippedSubviews={true}
                 />
             )}
-            {switchingTeam && (
+            {(switchingTeam || initiaLoad) && (
                 <View style={styles.loadingView}>
-                    <Loading style={styles.loading}/>
+                    <Loading
+                        size='large'
+                        themeColor='sidebarText'
+                    />
                 </View>
             )}
         </>

@@ -11,6 +11,7 @@ import tinyColor from 'tinycolor2';
 import CompassIcon from '@components/compass_icon';
 import {Device, Events, Screens} from '@constants';
 import NavigationConstants from '@constants/navigation';
+import {NOT_READY} from '@constants/screens';
 import {getDefaultThemeByAppearance} from '@context/theme';
 import EphemeralStore from '@store/ephemeral_store';
 import {LaunchProps, LaunchType} from '@typings/launch';
@@ -110,6 +111,10 @@ export const bottomSheetModalOptions = (theme: Theme, closeButtonId?: string) =>
                 enabled: false,
             },
         },
+        modalPresentationStyle: Platform.select({
+            ios: OptionsModalPresentationStyle.overFullScreen,
+            default: OptionsModalPresentationStyle.overCurrentContext,
+        }),
         modal: {swipeToDismiss: true},
         statusBar: {
             backgroundColor: null,
@@ -168,16 +173,16 @@ function getThemeFromState(): Theme {
 // crashes when trying to load a screen that does
 // NOT exists, this should be removed for GA
 function isScreenRegistered(screen: string) {
-    const exists = Object.values(Screens).includes(screen);
-
-    if (!exists) {
+    const notImplemented = NOT_READY.includes(screen) || !Object.values(Screens).includes(screen);
+    if (notImplemented) {
         Alert.alert(
             'Temporary error ' + screen,
             'The functionality you are trying to use has not been implemented yet',
         );
+        return false;
     }
 
-    return exists;
+    return true;
 }
 
 export function resetToHome(passProps: LaunchProps = {launchType: LaunchType.Normal}) {
@@ -523,7 +528,7 @@ export function showModalOverCurrentContext(name: string, passProps = {}, option
             break;
     }
     const defaultOptions = {
-        modalPresentationStyle: 'overCurrentContext',
+        modalPresentationStyle: OptionsModalPresentationStyle.overCurrentContext,
         layout: {
             backgroundColor: 'transparent',
             componentBackgroundColor: 'transparent',
@@ -580,12 +585,11 @@ export async function dismissAllModals() {
     }
 
     try {
-        const modals = EphemeralStore.navigationModalStack;
+        const modals = [...EphemeralStore.getAllNavigationModals()];
         for await (const modal of modals) {
+            EphemeralStore.removeNavigationModal(modal);
             await Navigation.dismissModal(modal, {animations: {dismissModal: {enabled: false}}});
         }
-
-        EphemeralStore.clearNavigationModals();
     } catch (error) {
         // RNN returns a promise rejection if there are no modals to
         // dismiss. We'll do nothing in this case.
@@ -684,7 +688,50 @@ export async function dismissBottomSheet(alternativeScreen = Screens.BOTTOM_SHEE
     await EphemeralStore.waitUntilScreensIsRemoved(alternativeScreen);
 }
 
+type AsBottomSheetArgs = {
+    closeButtonId: string;
+    props?: Record<string, any>;
+    screen: typeof Screens[keyof typeof Screens];
+    theme: Theme;
+    title: string;
+}
+
+export async function openAsBottomSheet({closeButtonId, screen, theme, title, props}: AsBottomSheetArgs) {
+    const {isSplitView} = await isRunningInSplitView();
+    const isTablet = Device.IS_TABLET && !isSplitView;
+
+    if (isTablet) {
+        showModal(screen, title, {
+            closeButtonId,
+            ...props,
+        }, bottomSheetModalOptions(theme, closeButtonId));
+    } else {
+        showModalOverCurrentContext(screen, props, bottomSheetModalOptions(theme));
+    }
+}
+
 export const showAppForm = async (form: AppForm, call: AppCallRequest) => {
     const passProps = {form, call};
-    showModal(Screens.APP_FORM, form.title || '', passProps);
+    showModal(Screens.APPS_FORM, form.title || '', passProps);
 };
+
+export async function findChannels(title: string, theme: Theme) {
+    const options: Options = {modal: {swipeToDismiss: false}};
+    const closeButtonId = 'close-find-channels';
+    const closeButton = CompassIcon.getImageSourceSync('close', 24, theme.sidebarHeaderTextColor);
+    options.topBar = {
+        leftButtons: [{
+            id: closeButtonId,
+            icon: closeButton,
+            testID: closeButtonId,
+        }],
+    };
+
+    DeviceEventEmitter.emit(Events.PAUSE_KEYBOARD_TRACKING_VIEW, true);
+    showModal(
+        Screens.FIND_CHANNELS,
+        title,
+        {closeButtonId},
+        options,
+    );
+}

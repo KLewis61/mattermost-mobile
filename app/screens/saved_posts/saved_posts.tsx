@@ -3,7 +3,7 @@
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {DeviceEventEmitter, FlatList, StyleSheet, View} from 'react-native';
+import {BackHandler, DeviceEventEmitter, FlatList, StyleSheet, View} from 'react-native';
 import {EventSubscription, Navigation} from 'react-native-navigation';
 import {Edge, SafeAreaView} from 'react-native-safe-area-context';
 
@@ -16,6 +16,7 @@ import {Events, Screens} from '@constants';
 import {useServerUrl} from '@context/server';
 import {useTheme} from '@context/theme';
 import {dismissModal} from '@screens/navigation';
+import EphemeralStore from '@store/ephemeral_store';
 import {isDateLine, getDateForDateLine, selectOrderedPosts} from '@utils/post_list';
 
 import EmptyState from './components/empty';
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     },
     empty: {
         alignItems: 'center',
-        minHeight: '100%',
+        flex: 1,
         justifyContent: 'center',
     },
     list: {
@@ -69,6 +70,12 @@ function SavedMessages({
 
     const data = useMemo(() => selectOrderedPosts(posts, 0, false, '', '', false, isTimezoneEnabled, currentTimezone, false).reverse(), [posts]);
 
+    const close = () => {
+        if (componentId) {
+            dismissModal({componentId});
+        }
+    };
+
     useEffect(() => {
         fetchSavedPosts(serverUrl).finally(() => {
             setLoading(false);
@@ -82,7 +89,7 @@ function SavedMessages({
                 navigationButtonPressed: ({buttonId}: { buttonId: string }) => {
                     switch (buttonId) {
                         case closeButtonId:
-                            dismissModal({componentId});
+                            close();
                             break;
                     }
                 },
@@ -93,6 +100,22 @@ function SavedMessages({
             unsubscribe?.remove();
         };
     }, [componentId, closeButtonId]);
+
+    useEffect(() => {
+        let listener: EventSubscription|undefined;
+        if (!isTablet && componentId) {
+            listener = BackHandler.addEventListener('hardwareBackPress', () => {
+                if (EphemeralStore.getNavigationTopComponentId() === componentId) {
+                    close();
+                    return true;
+                }
+
+                return false;
+            });
+        }
+
+        return () => listener?.remove();
+    }, [componentId, isTablet]);
 
     const onViewableItemsChanged = useCallback(({viewableItems}: ViewableItemsChanged) => {
         if (!viewableItems.length) {
@@ -120,13 +143,13 @@ function SavedMessages({
             {loading ? (
                 <Loading
                     color={theme.buttonBg}
-                    style={styles.loading}
+                    size='large'
                 />
             ) : (
                 <EmptyState/>
             )}
         </View>
-    ), [loading, theme.centerChannelColor]);
+    ), [loading, theme.buttonBg]);
 
     const renderItem = useCallback(({item}) => {
         if (typeof item === 'string') {
@@ -163,7 +186,7 @@ function SavedMessages({
                 style={styles.flex}
             >
                 <FlatList
-                    contentContainerStyle={styles.list}
+                    contentContainerStyle={data.length ? styles.list : [styles.empty]}
                     ListEmptyComponent={emptyList}
                     data={data}
                     onRefresh={handleRefresh}

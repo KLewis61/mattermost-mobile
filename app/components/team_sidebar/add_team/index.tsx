@@ -17,71 +17,21 @@ import AddTeamSlideUp from './add_team_slide_up';
 
 import type TeamModel from '@typings/database/models/servers/team';
 
+type Props = {
+    otherTeams: TeamModel[];
+}
+
 const ITEM_HEIGHT = 72;
-const CREATE_HEIGHT = 97;
 const HEADER_HEIGHT = 66;
 const CONTAINER_HEIGHT = 392;
 
-type Props = {
-    canCreateTeams: boolean;
-    otherTeams: TeamModel[];
-}
-export default function AddTeam({canCreateTeams, otherTeams}: Props) {
-    const theme = useTheme();
-    const styles = getStyleSheet(theme);
-    const dimensions = useWindowDimensions();
-    const intl = useIntl();
-    const isTablet = useIsTablet();
-    const maxHeight = Math.round((dimensions.height * 0.9));
-
-    const onPress = useCallback(preventDoubleTap(() => {
-        const renderContent = () => {
-            return (
-                <AddTeamSlideUp
-                    otherTeams={otherTeams}
-                    canCreateTeams={canCreateTeams}
-                    showTitle={!isTablet && Boolean(otherTeams.length)}
-                />
-            );
-        };
-
-        let height = CONTAINER_HEIGHT;
-        if (otherTeams.length) {
-            height = Math.min(maxHeight, HEADER_HEIGHT + (otherTeams.length * ITEM_HEIGHT) + (canCreateTeams ? CREATE_HEIGHT : 0));
-        }
-
-        bottomSheet({
-            closeButtonId: 'close-join-team',
-            renderContent,
-            snapPoints: [height, 10],
-            theme,
-            title: intl.formatMessage({id: 'mobile.add_team.join_team', defaultMessage: 'Join Another Team'}),
-        });
-    }), [canCreateTeams, otherTeams, isTablet, theme]);
-
-    return (
-        <View style={styles.container}>
-            <TouchableWithFeedback
-                onPress={onPress}
-                type='opacity'
-                style={styles.touchable}
-                testID='team_sidebar.add_team.button'
-            >
-                <CompassIcon
-                    size={28}
-                    name='plus'
-                    color={changeOpacity(theme.buttonColor, 0.64)}
-                />
-            </TouchableWithFeedback>
-        </View>
-    );
-}
+//const CREATE_HEIGHT = 97;
 
 const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => {
     return {
         container: {
             flex: 0,
-            backgroundColor: changeOpacity(theme.centerChannelColor, 0.64),
+            backgroundColor: changeOpacity(theme.sidebarText, 0.08),
             borderRadius: 10,
             height: 48,
             width: 48,
@@ -98,3 +48,53 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => {
         },
     };
 });
+
+export default function AddTeam({otherTeams}: Props) {
+    const theme = useTheme();
+    const styles = getStyleSheet(theme);
+    const dimensions = useWindowDimensions();
+    const intl = useIntl();
+    const isTablet = useIsTablet();
+    const maxHeight = Math.round((dimensions.height * 0.9));
+
+    const onPress = useCallback(preventDoubleTap(() => {
+        const renderContent = () => {
+            return (
+                <AddTeamSlideUp
+                    otherTeams={otherTeams}
+                    showTitle={!isTablet && Boolean(otherTeams.length)}
+                />
+            );
+        };
+
+        let height = CONTAINER_HEIGHT;
+        if (otherTeams.length) {
+            height = Math.min(maxHeight, HEADER_HEIGHT + ((otherTeams.length + 1) * ITEM_HEIGHT));
+        }
+
+        bottomSheet({
+            closeButtonId: 'close-join-team',
+            renderContent,
+            snapPoints: [height, 10],
+            theme,
+            title: intl.formatMessage({id: 'mobile.add_team.join_team', defaultMessage: 'Join Another Team'}),
+        });
+    }), [otherTeams, isTablet, theme]);
+
+    return (
+        <View style={styles.container}>
+            <TouchableWithFeedback
+                onPress={onPress}
+                type='opacity'
+                style={styles.touchable}
+                testID='team_sidebar.add_team.button'
+            >
+                <CompassIcon
+                    size={28}
+                    name='plus'
+                    color={changeOpacity(theme.sidebarText, 0.64)}
+                />
+            </TouchableWithFeedback>
+        </View>
+    );
+}

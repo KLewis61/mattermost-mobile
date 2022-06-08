@@ -2,14 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo} from 'react';
+import {useIntl} from 'react-intl';
 import {FlatList, Keyboard, ListRenderItemInfo, Platform, SectionList, SectionListData, Text, View} from 'react-native';
 
+import {storeProfile} from '@actions/local/user';
 import Loading from '@components/loading';
 import NoResultsWithTerm from '@components/no_results_with_term';
 import UserListRow from '@components/user_list_row';
-import {General} from '@constants';
+import {General, Screens} from '@constants';
+import {useServerUrl} from '@context/server';
 import {useTheme} from '@context/theme';
 import {useKeyboardHeight} from '@hooks/device';
+import {openAsBottomSheet} from '@screens/navigation';
 import {
     changeOpacity,
     makeStyleSheetFromTheme,
@@ -80,11 +84,6 @@ const getStyleFromTheme = makeStyleSheetFromTheme((theme) => {
             justifyContent: 'center' as const,
             alignItems: 'center' as const,
         },
-        loading: {
-            height: 32,
-            width: 32,
-            justifyContent: 'center' as const,
-        },
         noResultContainer: {
             flexGrow: 1,
             alignItems: 'center' as const,
@@ -117,6 +116,7 @@ type Props = {
     selectedIds: {[id: string]: UserProfile};
     testID?: string;
     term?: string;
+    tutorialWatched: boolean;
 }
 
 export default function UserList({
@@ -130,8 +130,11 @@ export default function UserList({
     showNoResults,
     term,
     testID,
+    tutorialWatched,
 }: Props) {
+    const intl = useIntl();
     const theme = useTheme();
+    const serverUrl = useServerUrl();
     const style = getStyleFromTheme(theme);
     const keyboardHeight = useKeyboardHeight();
     const noResutsStyle = useMemo(() => [
@@ -139,7 +142,24 @@ export default function UserList({
         {paddingBottom: keyboardHeight},
     ], [style, keyboardHeight]);
 
-    const renderItem = useCallback(({item}: ListRenderItemInfo<UserProfile>) => {
+    const openUserProfile = useCallback(async (profile: UserProfile) => {
+        const {user} = await storeProfile(serverUrl, profile);
+        if (user) {
+            const screen = Screens.USER_PROFILE;
+            const title = intl.formatMessage({id: 'mobile.routes.user_profile', defaultMessage: 'Profile'});
+            const closeButtonId = 'close-user-profile';
+            const props = {
+                closeButtonId,
+                userId: user.id,
+                location: Screens.USER_PROFILE,
+            };
+
+            Keyboard.dismiss();
+            openAsBottomSheet({screen, title, theme, closeButtonId, props});
+        }
+    }, []);
+
+    const renderItem = useCallback(({item, index}: ListRenderItemInfo<UserProfile>) => {
         // The list will re-render when the selection changes because it's passed into the list as extraData
         const selected = Boolean(selectedIds[item.id]);
         const canAdd = Object.keys(selectedIds).length < General.MAX_USERS_IN_GM;
@@ -147,18 +167,21 @@ export default function UserList({
         return (
             <UserListRow
                 key={item.id}
+                highlight={index === 0}
                 id={item.id}
                 isMyUser={currentUserId === item.id}
                 onPress={handleSelectProfile}
+                onLongPress={openUserProfile}
                 selectable={canAdd}
                 selected={selected}
                 enabled={canAdd}
                 testID='create_direct_message.user_list.user_item'
                 teammateNameDisplay={teammateNameDisplay}
+                tutorialWatched={tutorialWatched}
                 user={item}
             />
         );
-    }, [selectedIds, currentUserId, handleSelectProfile, teammateNameDisplay]);
+    }, [selectedIds, currentUserId, handleSelectProfile, teammateNameDisplay, tutorialWatched]);
 
     const renderLoading = useCallback(() => {
         if (!loading) {
@@ -167,9 +190,9 @@ export default function UserList({
 
         return (
             <Loading
-                containerStyle={style.loadingContainer}
-                style={style.loading}
                 color={theme.buttonBg}
+                containerStyle={style.loadingContainer}
+                size='large'
             />
         );
     }, [loading, theme]);

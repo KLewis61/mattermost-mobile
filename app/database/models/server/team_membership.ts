@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Q, Query, Relation} from '@nozbe/watermelondb';
+import {Q, Relation} from '@nozbe/watermelondb';
 import {field, immutableRelation, lazy} from '@nozbe/watermelondb/decorators';
 import Model, {Associations} from '@nozbe/watermelondb/Model';
 
@@ -37,6 +37,9 @@ export default class TeamMembershipModel extends Model implements TeamMembership
     /* user_id: The foreign key to the related User record*/
     @field('user_id') userId!: string;
 
+    /* scheme_admin: Determines if the user is an admin of the team*/
+    @field('scheme_admin') schemeAdmin!: boolean;
+
     /** memberUser: The related user in the team */
     @immutableRelation(USER, 'user_id') memberUser!: Relation<UserModel>;
 
@@ -46,10 +49,10 @@ export default class TeamMembershipModel extends Model implements TeamMembership
     /**
      * getAllTeamsForUser - Retrieves all the teams that the user is part of
      */
-    @lazy getAllTeamsForUser = this.collections.get(TEAM).query(Q.on(USER, 'id', this.userId)) as Query<TeamModel>;
+    @lazy getAllTeamsForUser = this.collections.get<TeamModel>(TEAM).query(Q.on(USER, 'id', this.userId));
 
     /**
      * getAllUsersInTeam - Retrieves all the users who are part of this team
      */
-    @lazy getAllUsersInTeam = this.collections.get(USER).query(Q.on(TEAM, 'id', this.teamId)) as Query<UserModel>;
+    @lazy getAllUsersInTeam = this.collections.get<UserModel>(USER).query(Q.on(TEAM, 'id', this.teamId));
 }

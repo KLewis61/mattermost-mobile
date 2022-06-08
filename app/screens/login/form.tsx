@@ -25,7 +25,7 @@ import type {LaunchProps} from '@typings/launch';
 
 interface LoginProps extends LaunchProps {
     config: Partial<ClientConfig>;
-    keyboardAwareRef: MutableRefObject<KeyboardAwareScrollView | undefined>;
+    keyboardAwareRef: MutableRefObject<KeyboardAwareScrollView | null>;
     license: Partial<ClientLicense>;
     numberSSOs: number;
     serverDisplayName: string;
@@ -67,10 +67,6 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
     },
     loginButton: {
         marginTop: 25,
-    },
-    loading: {
-        height: 20,
-        width: 20,
     },
 }));
 
@@ -304,7 +300,7 @@ const LoginForm = ({config, extra, keyboardAwareRef, numberSSOs, serverDisplayNa
             buttonIcon = (
                 <Loading
                     containerStyle={styles.loadingContainerStyle}
-                    style={styles.loading}
+                    color={theme.buttonColor}
                 />
             );
         }

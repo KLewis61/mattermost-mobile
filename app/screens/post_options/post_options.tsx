@@ -29,7 +29,7 @@ type PostOptionsProps = {
     canMarkAsUnread: boolean;
     canPin: boolean;
     canReply: boolean;
-    combinedPost?: Post;
+    combinedPost?: Post | PostModel;
     isSaved: boolean;
     sourceScreen: typeof Screens[keyof typeof Screens];
     post: PostModel;
@@ -81,7 +81,7 @@ const PostOptions = ({
         return (
             <>
                 {canAddReaction && <ReactionBar postId={post.id}/>}
-                {canReply && <ReplyOption post={post}/>}
+                {canReply && sourceScreen !== Screens.THREAD && <ReplyOption post={post}/>}
                 {shouldRenderFollow &&
                     <FollowThreadOption thread={thread}/>
                 }

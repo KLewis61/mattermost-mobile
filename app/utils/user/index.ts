@@ -12,7 +12,7 @@ import {toTitleCase} from '@utils/helpers';
 import type UserModel from '@typings/database/models/servers/user';
 import type {IntlShape} from 'react-intl';
 
-export function displayUsername(user?: UserProfile | UserModel, locale?: string, teammateDisplayNameSetting?: string, useFallbackUsername = true) {
+export function displayUsername(user?: UserProfile | UserModel | null, locale?: string, teammateDisplayNameSetting?: string, useFallbackUsername = true) {
     let name = useFallbackUsername ? getLocalizedMessage(locale || DEFAULT_LOCALE, t('channel_loader.someone'), 'Someone') : '';
 
     if (user) {
@@ -44,7 +44,7 @@ export function displayGroupMessageName(users: Array<UserProfile | UserModel>, l
         }
     });
 
-    return names.sort(sortUsernames).join(', ');
+    return names.sort(sortUsernames).join(', ').trim();
 }
 
 export function getFullName(user: UserProfile | UserModel): string {
@@ -126,7 +126,7 @@ export const getTimezone = (timezone: UserTimezone | null) => {
 export const getUserCustomStatus = (user?: UserModel | UserProfile): UserCustomStatus | undefined => {
     try {
         if (typeof user?.props?.customStatus === 'string') {
-            return JSON.parse(user.props.customStatus) as UserCustomStatus;
+            return JSON.parse(user.props.customStatus);
         }
 
         return user?.props?.customStatus;
@@ -230,14 +230,14 @@ export function getSuggestionsSplitBy(term: string, splitStr: string): string[] 
     if (splitStr === ' ') {
         suggestions = initialSuggestions;
     } else {
-        suggestions = initialSuggestions.reduce((acc, val) => {
+        suggestions = initialSuggestions.reduce<string[]>((acc, val) => {
             if (acc.length === 0) {
                 acc.push(val);
             } else {
                 acc.push(splitStr + val, val);
             }
             return acc;
-        }, [] as string[]);
+        }, []);
     }
     return suggestions;
 }
@@ -284,4 +284,23 @@ export function filterProfilesMatchingTerm(users: UserProfile[], term: string): 
             filter((suggestion) => suggestion !== '').
             some((suggestion) => suggestion.startsWith(trimmedTerm));
     });
+}
+
+export function getNotificationProps(user: UserModel) {
+    if (user && user.notifyProps) {
+        return user.notifyProps;
+    }
+
+    const props: Partial<UserNotifyProps> = {
+        channel: 'true',
+        comments: 'any',
+        desktop: 'all',
+        desktop_sound: 'true',
+        first_name: (!user || !user.firstName) ? 'false' : 'true',
+        mention_keys: user ? `${user.username},@${user.username}` : '',
+        push: 'mention',
+        push_status: 'online',
+    };
+
+    return props;
 }

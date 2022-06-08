@@ -24,7 +24,7 @@ type Props = {
     displayNameError?: string;
     handleUpdate: () => void;
     handleDisplayNameTextChanged: (text: string) => void;
-    keyboardAwareRef: MutableRefObject<KeyboardAwareScrollView | undefined>;
+    keyboardAwareRef: MutableRefObject<KeyboardAwareScrollView | null>;
     serverUrl: string;
     theme: Theme;
 };
@@ -140,7 +140,7 @@ const EditServerForm = ({
         buttonIcon = (
             <Loading
                 containerStyle={styles.loadingContainerStyle}
-                style={styles.loading}
+                color={theme.buttonColor}
             />
         );
     }

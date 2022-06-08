@@ -12,7 +12,9 @@ import type {MarkdownBlockStyles, MarkdownTextStyles} from '@typings/global/mark
 type Props = {
     baseTextStyle: StyleProp<TextStyle>;
     blockStyles?: MarkdownBlockStyles;
+    channelId: string;
     fields: MessageAttachmentField[];
+    location: string;
     metadata?: PostMetadata;
     textStyles?: MarkdownTextStyles;
     theme: Theme;
@@ -44,11 +46,11 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => {
     };
 });
 
-const AttachmentFields = ({baseTextStyle, blockStyles, fields, metadata, textStyles, theme}: Props) => {
+const AttachmentFields = ({baseTextStyle, blockStyles, channelId, fields, location, metadata, textStyles, theme}: Props) => {
     const style = getStyleSheet(theme);
     const fieldTables = [];
 
-    let fieldInfos = [] as React.ReactNode[];
+    let fieldInfos: React.ReactNode[] = [];
     let rowPos = 0;
     let lastWasLong = false;
     let nrTables = 0;
@@ -91,11 +93,13 @@ const AttachmentFields = ({baseTextStyle, blockStyles, fields, metadata, textSty
                     key={`attachment__field-${i.toString()}__${nrTables}`}
                 >
                     <Markdown
-                        baseTextStyle={baseTextStyle as never}
+                        baseTextStyle={baseTextStyle}
+                        channelId={channelId}
                         textStyles={textStyles}
                         blockStyles={blockStyles}
                         disableGallery={true}
                         imagesMetadata={metadata?.images}
+                        location={location}
                         theme={theme}
                         value={(field.value || '')}
                     />

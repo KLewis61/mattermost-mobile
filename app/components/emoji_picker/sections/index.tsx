@@ -3,7 +3,7 @@
 
 import {chunk} from 'lodash';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {NativeScrollEvent, NativeSyntheticEvent, SectionList, StyleSheet, View} from 'react-native';
+import {NativeScrollEvent, NativeSyntheticEvent, SectionList, SectionListData, StyleSheet, View} from 'react-native';
 import sectionListGetItemLayout from 'react-native-section-list-get-item-layout';
 
 import {fetchCustomEmojis} from '@actions/remote/custom_emoji';
@@ -75,7 +75,7 @@ CategoryNames.forEach((name: string) => {
 
 const EmojiSections = ({customEmojis, customEmojisEnabled, onEmojiPress, recentEmojis, skinTone, width}: Props) => {
     const serverUrl = useServerUrl();
-    const list = useRef<SectionList<EmojiSection>>();
+    const list = useRef<SectionList<EmojiSection>>(null);
     const [sectionIndex, setSectionIndex] = useState(0);
     const [customEmojiPage, setCustomEmojiPage] = useState(0);
     const [fetchingCustomEmojis, setFetchingCustomEmojis] = useState(false);
@@ -180,9 +180,9 @@ const EmojiSections = ({customEmojis, customEmojisEnabled, onEmojiPress, recentE
         setSectionIndex(index);
     };
 
-    const renderSectionHeader = useCallback(({section}) => {
+    const renderSectionHeader = useCallback(({section}: {section: SectionListData<EmojiAlias[], EmojiSection>}) => {
         return (
-            <SectionHeader section={section as EmojiSection}/>
+            <SectionHeader section={section}/>
         );
     }, []);
 
@@ -221,8 +221,6 @@ const EmojiSections = ({customEmojis, customEmojisEnabled, onEmojiPress, recentE
                 onEndReached={onLoadMoreCustomEmojis}
                 onEndReachedThreshold={2}
                 onScroll={onScroll}
-
-                // @ts-expect-error ref
                 ref={list}
                 renderItem={renderItem}
                 renderSectionHeader={renderSectionHeader}

@@ -24,7 +24,7 @@ type EnhanceProps = WithDatabaseArgs & {
 const enhance = withObservables(['channel', 'myChannel', 'settings'], ({channel, myChannel, settings}: EnhanceProps) => {
     let membersCount = of$(0);
     if (channel.type === General.GM_CHANNEL) {
-        membersCount = channel.members.observeCount();
+        membersCount = channel.members.observeCount(false);
     }
 
     return {

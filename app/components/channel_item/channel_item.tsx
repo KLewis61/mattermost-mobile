@@ -57,10 +57,11 @@ export const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
     text: {
         marginTop: -1,
         color: changeOpacity(theme.sidebarText, 0.72),
-        paddingHorizontal: 12,
+        paddingLeft: 12,
+        paddingRight: 20,
     },
     highlight: {
-        color: theme.sidebarText,
+        color: theme.sidebarUnreadText,
     },
     textInfo: {
         color: theme.centerChannelColor,
@@ -68,6 +69,9 @@ export const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
     },
     muted: {
         color: changeOpacity(theme.sidebarText, 0.32),
+    },
+    mutedInfo: {
+        color: changeOpacity(theme.centerChannelColor, 0.32),
     },
     badge: {
         borderColor: theme.sidebarBg,
@@ -100,6 +104,9 @@ export const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
         marginTop: 4,
         ...typography('Body', 75),
     },
+    teamNameMuted: {
+        color: changeOpacity(theme.centerChannelColor, 0.32),
+    },
     teamNameTablet: {
         marginLeft: -12,
         paddingLeft: 0,
@@ -110,7 +117,7 @@ export const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
 }));
 
 export const textStyle = StyleSheet.create({
-    bright: typography('Body', 200, 'SemiBold'),
+    bold: typography('Body', 200, 'SemiBold'),
     regular: typography('Body', 200, 'Regular'),
 });
 
@@ -140,21 +147,20 @@ const ChannelListItem = ({
 
     const isMuted = settings.notifyProps.mark_unread === 'mention' || isCategoryMuted;
     const textStyles = useMemo(() => [
-        isBright ? textStyle.bright : textStyle.regular,
+        isBolded ? textStyle.bold : textStyle.regular,
         styles.text,
-        isBright && styles.highlight,
-        isMuted && styles.muted,
-        isActive && !isInfo ? styles.textActive : null,
+        isBolded && styles.highlight,
+        isActive && isTablet && !isInfo ? styles.textActive : null,
         isInfo ? styles.textInfo : null,
     ], [isBright, styles, settings.notifyProps.mark_unread, isActive, isInfo]);
 
     const containerStyle = useMemo(() => [
         styles.container,
-        isActive && !isInfo && styles.activeItem,
+        isActive && isTablet && !isInfo && styles.activeItem,
         isInfo && styles.infoItem,
         {minHeight: height},
     ],
-    [height, isActive, isInfo, styles]);
+    [height, isActive, isTablet, isInfo, styles]);
 
     if (!myChannel) {
         return null;
@@ -178,9 +184,9 @@ const ChannelListItem = ({
                     <View style={styles.wrapper}>
                         <ChannelIcon
                             hasDraft={hasDraft}
-                            isActive={isInfo ? false : isActive}
+                            isActive={isInfo ? false : isTablet && isActive}
                             isInfo={isInfo}
-                            isUnread={isBright}
+                            isUnread={isBolded}
                             isArchived={channel.deleteAt > 0}
                             membersCount={membersCount}
                             name={channel.name}
@@ -203,7 +209,7 @@ const ChannelListItem = ({
                                 ellipsizeMode='tail'
                                 numberOfLines={1}
                                 testID={`${testID}.${teamDisplayName}.display_name`}
-                                style={styles.teamName}
+                                style={[styles.teamName, isMuted && styles.teamNameMuted]}
                             >
                                 {teamDisplayName}
                             </Text>
@@ -220,7 +226,7 @@ const ChannelListItem = ({
                             ellipsizeMode='tail'
                             numberOfLines={1}
                             testID={`${testID}.${teamDisplayName}.display_name`}
-                            style={[styles.teamName, styles.teamNameTablet]}
+                            style={[styles.teamName, styles.teamNameTablet, isMuted && styles.teamNameMuted]}
                         >
                             {teamDisplayName}
                         </Text>

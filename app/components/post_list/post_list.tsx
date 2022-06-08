@@ -117,8 +117,8 @@ const PostList = ({
 
     useEffect(() => {
         const t = setTimeout(() => {
-            listRef.current?.scrollToOffset({offset: 0, animated: false});
-        }, 200);
+            listRef.current?.scrollToOffset({offset: 0, animated: true});
+        }, 300);
 
         return () => clearTimeout(t);
     }, [channelId, rootId]);
@@ -248,6 +248,7 @@ const PostList = ({
                 const postProps = {
                     currentUsername,
                     postId: item,
+                    location,
                     style: Platform.OS === 'ios' ? styles.scale : styles.container,
                     testID: `${testID}.combined_user_activity`,
                     showJoinLeave: shouldShowJoinLeaveMessages,

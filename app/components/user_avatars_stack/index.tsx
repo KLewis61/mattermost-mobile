@@ -11,6 +11,7 @@ import {useIsTablet} from '@hooks/device';
 import {bottomSheet} from '@screens/navigation';
 import {preventDoubleTap} from '@utils/tap';
 import {changeOpacity, makeStyleSheetFromTheme} from '@utils/theme';
+import {typography} from '@utils/typography';
 
 import UserAvatar from './user_avatar';
 import UsersList from './users_list';
@@ -20,6 +21,8 @@ import type UserModel from '@typings/database/models/servers/user';
 const OVERFLOW_DISPLAY_LIMIT = 99;
 
 type Props = {
+    channelId: string;
+    location: string;
     users: UserModel[];
     breakAt?: number;
     style?: StyleProp<ViewStyle>;
@@ -86,13 +89,13 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => {
         },
         listHeaderText: {
             color: changeOpacity(theme.centerChannelColor, 0.56),
-            fontSize: 12,
-            fontWeight: '600',
+            ...typography('Body', 75, 'SemiBold'),
+            textTransform: 'uppercase',
         },
     };
 });
 
-const UserAvatarsStack = ({breakAt = 3, style: baseContainerStyle, users}: Props) => {
+const UserAvatarsStack = ({breakAt = 3, channelId, location, style: baseContainerStyle, users}: Props) => {
     const theme = useTheme();
     const intl = useIntl();
     const isTablet = useIsTablet();
@@ -104,23 +107,27 @@ const UserAvatarsStack = ({breakAt = 3, style: baseContainerStyle, users}: Props
                     <View style={style.listHeader}>
                         <FormattedText
                             id='mobile.participants.header'
-                            defaultMessage={'THREAD PARTICIPANTS'}
+                            defaultMessage={'Thread Participants'}
                             style={style.listHeaderText}
                         />
                     </View>
                 )}
-                <UsersList users={users}/>
+                <UsersList
+                    channelId={channelId}
+                    location={location}
+                    users={users}
+                />
             </>
         );
-
         bottomSheet({
             closeButtonId: 'close-set-user-status',
             renderContent,
-            snapPoints: [(Math.min(14, users.length) + 3) * 40, 10],
-            title: intl.formatMessage({id: 'mobile.participants.header', defaultMessage: 'THREAD PARTICIPANTS'}),
+            initialSnapIndex: 1,
+            snapPoints: ['90%', '50%', 10],
+            title: intl.formatMessage({id: 'mobile.participants.header', defaultMessage: 'Thread Participants'}),
             theme,
         });
-    }), [isTablet, theme, users]);
+    }), [isTablet, theme, users, channelId, location]);
 
     const displayUsers = users.slice(0, breakAt);
     const overflowUsersCount = Math.min(users.length - displayUsers.length, OVERFLOW_DISPLAY_LIMIT);

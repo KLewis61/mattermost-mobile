@@ -17,11 +17,11 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import Autocomplete from '@components/autocomplete';
+import BlockItem from '@components/block_item';
 import ErrorText from '@components/error_text';
 import FloatingTextInput from '@components/floating_text_input_label';
 import FormattedText from '@components/formatted_text';
 import Loading from '@components/loading';
-import SectionItem from '@components/section_item';
 import {General, Channel} from '@constants';
 import {useTheme} from '@context/theme';
 import {useIsTablet} from '@hooks/device';
@@ -56,9 +56,9 @@ const getStyleSheet = makeStyleSheetFromTheme((theme) => ({
         paddingHorizontal: 15,
     },
     loading: {
-        height: 20,
-        width: 20,
-        color: theme.centerChannelBg,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     textInput: {
         marginTop: 30,
@@ -109,7 +109,7 @@ export default function ChannelInfoForm({
     const intl = useIntl();
     const {formatMessage} = intl;
     const isTablet = useIsTablet();
-    const headerHeight = useHeaderHeight(false, false, false);
+    const headerHeight = useHeaderHeight();
 
     const theme = useTheme();
     const styles = getStyleSheet(theme);
@@ -118,7 +118,7 @@ export default function ChannelInfoForm({
     const purposeInput = useRef<TextInput>(null);
     const headerInput = useRef<TextInput>(null);
 
-    const scrollViewRef = useRef<KeyboardAwareScrollView>();
+    const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
 
     const updateScrollTimeout = useRef<NodeJS.Timeout>();
 
@@ -195,7 +195,9 @@ export default function ChannelInfoForm({
             <View style={styles.container}>
                 <StatusBar/>
                 <Loading
-                    style={styles.loading}
+                    containerStyle={styles.loading}
+                    color={theme.centerChannelColor}
+                    size='large'
                 />
             </View>
         );
@@ -228,8 +230,6 @@ export default function ChannelInfoForm({
         >
             <KeyboardAwareScrollView
                 testID={'create_or_edit_channel.scrollview'}
-
-                // @ts-expect-error legacy ref
                 ref={scrollViewRef}
                 keyboardShouldPersistTaps={'always'}
                 onKeyboardDidShow={onKeyboardDidShow}
@@ -244,7 +244,7 @@ export default function ChannelInfoForm({
                 >
                     <View>
                         {showSelector && (
-                            <SectionItem
+                            <BlockItem
                                 testID='channel_info_form.make_private'
                                 label={makePrivateLabel}
                                 description={makePrivateDescription}

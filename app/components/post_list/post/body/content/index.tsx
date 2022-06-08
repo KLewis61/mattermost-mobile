@@ -30,7 +30,7 @@ const contentType: Record<string, string> = {
 };
 
 const Content = ({isReplyPost, layoutWidth, location, post, theme}: ContentProps) => {
-    let type: string = post.metadata?.embeds?.[0].type as string;
+    let type: string | undefined = post.metadata?.embeds?.[0].type;
     if (!type && post.props?.attachments?.length) {
         type = contentType.app_bindings;
     }
@@ -78,6 +78,7 @@ const Content = ({isReplyPost, layoutWidth, location, post, theme}: ContentProps
                 return (
                     <MessageAttachments
                         attachments={post.props.attachments}
+                        channelId={post.channelId}
                         layoutWidth={layoutWidth}
                         location={location}
                         metadata={post.metadata!}
@@ -91,6 +92,7 @@ const Content = ({isReplyPost, layoutWidth, location, post, theme}: ContentProps
             if (post.props.app_bindings?.length) {
                 return (
                     <EmbeddedBindings
+                        location={location}
                         post={post}
                         theme={theme}
                     />

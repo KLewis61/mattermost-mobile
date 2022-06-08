@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Q, Query, Relation} from '@nozbe/watermelondb';
+import {Q, Relation} from '@nozbe/watermelondb';
 import {field, immutableRelation, lazy} from '@nozbe/watermelondb/decorators';
 import Model, {Associations} from '@nozbe/watermelondb/Model';
 
@@ -37,6 +37,9 @@ export default class ChannelMembershipModel extends Model implements ChannelMemb
     /* user_id: The foreign key to the related User record*/
     @field('user_id') userId!: string;
 
+    /* scheme_admin: Determines if the user is an admin of the channel*/
+    @field('scheme_admin') schemeAdmin!: boolean;
+
     /** memberChannel : The related channel this member belongs to */
     @immutableRelation(CHANNEL, 'channel_id') memberChannel!: Relation<ChannelModel>;
 
@@ -46,10 +49,10 @@ export default class ChannelMembershipModel extends Model implements ChannelMemb
     /**
      * getAllChannelsForUser - Retrieves all the channels that the user is part of
      */
-    @lazy getAllChannelsForUser = this.collections.get(CHANNEL).query(Q.on(USER, 'id', this.userId)) as Query<ChannelModel>;
+    @lazy getAllChannelsForUser = this.collections.get<ChannelModel>(CHANNEL).query(Q.on(USER, 'id', this.userId));
 
     /**
      * getAllUsersInChannel - Retrieves all the users who are part of this channel
      */
-    @lazy getAllUsersInChannel = this.collections.get(USER).query(Q.on(CHANNEL, 'id', this.channelId)) as Query<UserModel>;
+    @lazy getAllUsersInChannel = this.collections.get<UserModel>(USER).query(Q.on(CHANNEL, 'id', this.channelId));
 }
