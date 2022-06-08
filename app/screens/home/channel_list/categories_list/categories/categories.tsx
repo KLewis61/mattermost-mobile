@@ -3,7 +3,7 @@
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {SectionList, SectionListData, SectionListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
+import {LayoutAnimation, SectionList, SectionListData, SectionListRenderItemInfo, StyleSheet, Text, View} from 'react-native';
 
 import {switchToChannelById} from '@actions/remote/channel';
 import {MyChannelSettingsModel} from '@app/database/models/server';
@@ -182,6 +182,10 @@ const Categories = ({
         }
         return s;
     }, [onlyUnreads, unreadsOnTop, allMyChannels, allCategoriesChannels, categories, allMyChannels, hiddenChannels, allChannelSettings, currentChannelId, intl.locale]);
+
+    useEffect(() => {
+        LayoutAnimation.easeInEaseOut();
+    }, [sections]);
 
     const renderSectionHeader = useCallback((info: {section: SectionListData<ItemType, {category: CategoryModel | 'UNREADS'}>}) => {
         if (info.section.category === 'UNREADS') {
