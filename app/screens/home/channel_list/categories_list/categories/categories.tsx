@@ -235,7 +235,7 @@ const Categories = ({
                     maxToRenderPerBatch={5}
                     updateCellsBatchingPeriod={10}
                     windowSize={10}
-                    // getItemLayout={getItemLayout}
+                    getItemLayout={getItemLayout}
                     removeClippedSubviews={true}
                 />
             )}
